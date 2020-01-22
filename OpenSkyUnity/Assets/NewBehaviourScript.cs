@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 
@@ -9,20 +10,23 @@ public class Game
     private const int keyframesPerTurn = 50;
     private int maxGameTime = 0;
 
-    private readonly List<SpaceObject> objects = new List<SpaceObject>();
+    private readonly ReadOnlyCollection<IViewableSpaceObject> viewableObjects;
 
     private readonly CurrentGameState currentGameState;
 
-    public Game()
+    public Game(IEnumerable<SpaceshipBlueprint> shipBlueprints)
     {
-        currentGameState = new CurrentGameState();
+        viewableObjects = shipBlueprints.SelectMany(item => item.ViewableObjects).ToList().AsReadOnly();
+        IEnumerable<SpaceShip> spaceships = shipBlueprints.SelectMany(item => item.Spaceships);
+        IEnumerable<Projectile> projectiles = shipBlueprints.SelectMany(item => item.Projectiles);
+        currentGameState = new CurrentGameState(spaceships, projectiles);
     }
 
     public void DisplayTime(float time)
     {
-        foreach (SpaceObject obj in objects)
+        foreach (IViewableSpaceObject obj in viewableObjects)
         {
-            obj.DisplayTime(time);
+            obj.DisplayAtTime(time);
         }
     }
 
@@ -45,15 +49,25 @@ public class Game
 
 public class CurrentGameState
 {
-    private List<SpaceObject> activeEntities = new List<SpaceObject>();
+    private ReadOnlyCollection<SpaceShip> spaceships;
+    private ReadOnlyCollection<Projectile> projectiles;
+
+    public CurrentGameState(IEnumerable<SpaceShip> spaceships,
+        IEnumerable<Projectile> projectiles)
+    {
+        this.projectiles = projectiles.ToList().AsReadOnly();
+        this.spaceships = spaceships.ToList().AsReadOnly();
+    }
 
     private void MoveEntities()
     {
-        foreach (SpaceObject obj in activeEntities)
+        foreach (SpaceShip ship in spaceships)
         {
-            obj.MoveToNextKeyframe();
-            SpaceObjectTransform frame = new SpaceObjectTransform(obj.GameObject.transform.position, obj.GameObject.transform.rotation);
-            obj.Timeline.AddKeyframe(frame);
+            ship.MoveEntity();
+        }
+        foreach (Projectile projectile in projectiles)
+        {
+            projectile.MoveEntity();
         }
     }
 
@@ -61,45 +75,46 @@ public class CurrentGameState
     {
         foreach (SpaceShipOrders order in unitOrders)
         {
-            order.Unit.TargetPosition = order.TargetPosition;
-        }
-    }
-
-    private List<SpaceObject> GetNewActiveEntities()
-    {
-        List<SpaceObject> ret = new List<SpaceObject>();
-        foreach (SpaceObject item in activeEntities)
-        {
-            if(item.IsAlive)
-            {
-                ret.Add(item);
-                ret.AddRange(item.GetSpawnedObjects());
-            }
-        }
-        return ret;
-    }
-
-    private void UpdateEntityStates()
-    {
-        foreach (SpaceObject obj in activeEntities)
-        {
-            obj.UpdateEntityState(activeEntities);
-        }
-    }
-
-    private void SpawnNewEntities()
-    {
-        foreach (SpaceObject obj in activeEntities)
-        {
-            obj.UpdateEntityState(activeEntities);
+            order.ApplyOrders();
         }
     }
 
     internal void DoNextKeyframe()
     {
         MoveEntities();
-        UpdateEntityStates();
-        activeEntities = GetNewActiveEntities();
+        RegisterDamage();
+        ApplyDamage();
+        InitiateNewAttacks();
+    }
+
+    private void RegisterDamage()
+    {
+        IEnumerable<SpaceShip> ships = spaceships.Where(ship => ship.IsActive).ToArray();
+        IEnumerable<Projectile> activeProjectiles = projectiles.Where(projectile => projectile.IsActive).ToArray();
+        foreach (SpaceShip ship in spaceships)
+        {
+            ship.RegisterDamage(ships, activeProjectiles);
+        }
+    }
+
+    private void ApplyDamage()
+    {
+        foreach (SpaceShip ship in spaceships)
+        {
+            ship.ApplyDamage();
+        }
+        foreach (Projectile projectile in projectiles)
+        {
+            projectile.ApplyDamage();
+        }
+    }
+
+    private void InitiateNewAttacks()
+    {
+        foreach (SpaceShip ship in spaceships)
+        {
+            ship.InitiateNewAttacks();
+        }
     }
 }
 
@@ -108,138 +123,99 @@ public class SpaceShipOrders
     public SpaceShip Unit { get; }
     
     public Vector3 TargetPosition { get; } // TODO: Make this more elaborate
-}
 
-public class SpaceShip : SpaceObject
-{
-    public Vector3 TargetPosition { get; set; }
-
-    public override bool IsAlive => throw new NotImplementedException();
-
-    public SpaceShip(GameObject obj)
-        :base(obj)
-    { }
-
-    public override void MoveToNextKeyframe()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void UpdateEntityState(IEnumerable<SpaceObject> aciveObjects)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override IEnumerable<SpaceObject> GetSpawnedObjects()
+    internal void ApplyOrders()
     {
         throw new NotImplementedException();
     }
 }
 
-public class Projectile : SpaceObject
+public interface IViewableSpaceObject
 {
-    public Projectile(GameObject gameObject) 
-        : base(gameObject)
-    { }
-
-    public override bool IsAlive => throw new NotImplementedException();
-
-    public override IEnumerable<SpaceObject> GetSpawnedObjects()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void MoveToNextKeyframe()
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void UpdateEntityState(IEnumerable<SpaceObject> aciveObjects)
-    {
-        throw new NotImplementedException();
-    }
+    void DisplayAtTime(float time);
 }
 
-public abstract class SpaceObject
+public abstract class SpaceObject : IViewableSpaceObject
 {
+    public bool IsActive { get; private set; }
     public GameObject GameObject { get; }
     public SpaceObjectTimeline Timeline { get; }
-    public abstract bool IsAlive { get; }
     
     public SpaceObject(GameObject gameObject)
     {
         GameObject = gameObject;
-        Timeline = new SpaceObjectTimeline(gameObject.transform.position, gameObject.transform.rotation);
+        Timeline = new SpaceObjectTimeline();
     }
 
-    public abstract void MoveToNextKeyframe();
-    public abstract void UpdateEntityState(IEnumerable<SpaceObject> aciveObjects);
-
-    public abstract IEnumerable<SpaceObject> GetSpawnedObjects();
-
-    public void DisplayTime(float time)
+    public void RegisterKeyframe()
     {
-        bool doesExist = Timeline.DoesExistAtTime(time);
-        GameObject.SetActive(doesExist);
-        if(doesExist)
-        {
-            SpaceObjectTransform trans = Timeline.GetTransformAtTime(time);
-            GameObject.transform.position = trans.Position;
-            GameObject.transform.rotation = trans.Rotation;
-        }
+        SpaceObjectKey frame = new SpaceObjectKey(GameObject.transform.position,
+            GameObject.transform.rotation,
+            IsActive);
+        Timeline.AddKeyframe(frame);
     }
+
+    public void DisplayAtTime(float time)
+    {
+        ISpaceObjectKey key = Timeline.GetTransformAtTime(time);
+        GameObject.transform.position = key.Position;
+        GameObject.transform.rotation = key.Rotation;
+        GameObject.SetActive(key.Visible);
+    }
+
+    public abstract void MoveEntity();
 }
 
-public class SpaceObjectTimeline
+public abstract class SpaceObjectTimeline<T>
+    where T : ISpaceObjectKey
 {
-    private int timelineStart;
-    private readonly List<SpaceObjectTransform> keyframes;
+    private readonly List<T> keyframes = new List<T>();
 
-    public SpaceObjectTimeline(Vector3 startingPosition, Quaternion startingRotation)
-    {
-        keyframes = new List<SpaceObjectTransform> { new SpaceObjectTransform(startingPosition, startingRotation) };
-    }
-
-    public void AddKeyframe(SpaceObjectTransform keyframe)
+    public void AddKeyframe(T keyframe)
     {
         keyframes.Add(keyframe);
     }
 
-    public bool DoesExistAtTime(float time)
-    {
-        if(time > timelineStart)
-        {
-            return time < timelineStart + keyframes.Count;
-        }
-        return false;
-    }
+    public abstract T GetTransformAtTime(float time);
 
-    public SpaceObjectTransform GetTransformAtTime(float time)
+    protected T GetFrame(int frame)
     {
-        float lerp = time % 1;
-        SpaceObjectTransform previousKey = GetFrame(Mathf.FloorToInt(time));
-        SpaceObjectTransform nextKey = GetFrame(Mathf.CeilToInt(time));
-        Vector3 posRet = Vector3.Lerp(previousKey.Position, nextKey.Position, lerp);
-        Quaternion rotRet = Quaternion.Lerp(previousKey.Rotation, nextKey.Rotation, lerp);
-        return new SpaceObjectTransform(posRet, rotRet);
-    }
-
-    private SpaceObjectTransform GetFrame(int frame)
-    {
-        frame = frame - timelineStart;
         frame = Mathf.Clamp(frame, 0, keyframes.Count - 1);
         return keyframes[frame];
     }
 }
 
-public struct SpaceObjectTransform
+public class SpaceObjectTimeline : SpaceObjectTimeline<SpaceObjectKey>
+{
+    public override SpaceObjectKey GetTransformAtTime(float time)
+    {
+        float lerp = time % 1;
+        SpaceObjectKey previousKey = GetFrame(Mathf.FloorToInt(time));
+        SpaceObjectKey nextKey = GetFrame(Mathf.CeilToInt(time));
+        Vector3 posRet = Vector3.Lerp(previousKey.Position, nextKey.Position, lerp);
+        Quaternion rotRet = Quaternion.Lerp(previousKey.Rotation, nextKey.Rotation, lerp);
+        bool visibleRet = lerp > .5f ? nextKey.Visible : previousKey.Visible;
+        return new SpaceObjectKey(posRet, rotRet, visibleRet);
+    }
+}
+
+public interface ISpaceObjectKey
+{
+    Vector3 Position { get; }
+    Quaternion Rotation { get; }
+    bool Visible { get; }
+}
+
+public struct SpaceObjectKey : ISpaceObjectKey
 {
     public Vector3 Position { get; }
     public Quaternion Rotation { get; }
+    public bool Visible { get; }
 
-    public SpaceObjectTransform(Vector3 position, Quaternion rotation)
+    public SpaceObjectKey(Vector3 position, Quaternion rotation, bool visible)
     {
         Position = position;
         Rotation = rotation;
+        Visible = visible;
     }
 }
