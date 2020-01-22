@@ -118,18 +118,6 @@ public class CurrentGameState
     }
 }
 
-public class SpaceShipOrders
-{
-    public SpaceShip Unit { get; }
-    
-    public Vector3 TargetPosition { get; } // TODO: Make this more elaborate
-
-    internal void ApplyOrders()
-    {
-        throw new NotImplementedException();
-    }
-}
-
 public interface IViewableSpaceObject
 {
     void DisplayAtTime(float time);
@@ -157,7 +145,7 @@ public abstract class SpaceObject : IViewableSpaceObject
 
     public void DisplayAtTime(float time)
     {
-        ISpaceObjectKey key = Timeline.GetTransformAtTime(time);
+        SpaceObjectKey key = Timeline.GetTransformAtTime(time);
         GameObject.transform.position = key.Position;
         GameObject.transform.rotation = key.Rotation;
         GameObject.SetActive(key.Visible);
@@ -167,7 +155,6 @@ public abstract class SpaceObject : IViewableSpaceObject
 }
 
 public abstract class SpaceObjectTimeline<T>
-    where T : ISpaceObjectKey
 {
     private readonly List<T> keyframes = new List<T>();
 
@@ -176,7 +163,15 @@ public abstract class SpaceObjectTimeline<T>
         keyframes.Add(keyframe);
     }
 
-    public abstract T GetTransformAtTime(float time);
+    public T GetTransformAtTime(float time)
+    {
+        float lerp = time % 1;
+        T previousKey = GetFrame(Mathf.FloorToInt(time));
+        T nextKey = GetFrame(Mathf.CeilToInt(time));
+        return GetTransformAtTime(previousKey, nextKey, lerp);
+    }
+
+    protected abstract T GetTransformAtTime(T previousKey, T nextKey, float lerp);
 
     protected T GetFrame(int frame)
     {
@@ -187,11 +182,10 @@ public abstract class SpaceObjectTimeline<T>
 
 public class SpaceObjectTimeline : SpaceObjectTimeline<SpaceObjectKey>
 {
-    public override SpaceObjectKey GetTransformAtTime(float time)
+    protected override SpaceObjectKey GetTransformAtTime(SpaceObjectKey previousKey,
+        SpaceObjectKey nextKey,
+        float lerp)
     {
-        float lerp = time % 1;
-        SpaceObjectKey previousKey = GetFrame(Mathf.FloorToInt(time));
-        SpaceObjectKey nextKey = GetFrame(Mathf.CeilToInt(time));
         Vector3 posRet = Vector3.Lerp(previousKey.Position, nextKey.Position, lerp);
         Quaternion rotRet = Quaternion.Lerp(previousKey.Rotation, nextKey.Rotation, lerp);
         bool visibleRet = lerp > .5f ? nextKey.Visible : previousKey.Visible;
@@ -199,14 +193,21 @@ public class SpaceObjectTimeline : SpaceObjectTimeline<SpaceObjectKey>
     }
 }
 
-public interface ISpaceObjectKey
+public class ExplosionTimeline : SpaceObjectTimeline<ExplosionKey>
 {
-    Vector3 Position { get; }
-    Quaternion Rotation { get; }
-    bool Visible { get; }
+    protected override ExplosionKey GetTransformAtTime(ExplosionKey previousKey,
+        ExplosionKey nextKey,
+        float lerp)
+    {
+        Vector3 posRet = Vector3.Lerp(previousKey.Position, nextKey.Position, lerp);
+        Quaternion rotRet = Quaternion.Lerp(previousKey.Rotation, nextKey.Rotation, lerp);
+        float progression = Mathf.Lerp(previousKey.Progression, nextKey.Progression, lerp);
+        return new ExplosionKey(posRet, rotRet, progression);
+    }
 }
 
-public struct SpaceObjectKey : ISpaceObjectKey
+
+public struct SpaceObjectKey
 {
     public Vector3 Position { get; }
     public Quaternion Rotation { get; }
@@ -217,5 +218,20 @@ public struct SpaceObjectKey : ISpaceObjectKey
         Position = position;
         Rotation = rotation;
         Visible = visible;
+    }
+}
+
+public struct ExplosionKey
+{
+    public Vector3 Position { get; }
+    public Quaternion Rotation { get; }
+    public float Progression { get; }
+
+    public ExplosionKey(Vector3 position, 
+        Quaternion rotation, float progression)
+    {
+        Position = position;
+        Rotation = rotation;
+        Progression = progression;
     }
 }
