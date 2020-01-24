@@ -1,14 +1,24 @@
 ﻿using UnityEngine;
 
-public abstract class Projectile : IViewableSpaceObject
+public abstract class Projectile : IViewableSpaceObject, IDamageSource
 {
     public bool IsActive { get; protected set; }
 
     public GameObject GameObject { get; }
     public ItemTimeline<ProjectileKey> Timeline { get; }
 
-    public Projectile(GameObject gameObject)
+    public float Damage { get; }
+
+    public Vector3 Position { get { return GameObject.transform.position; } }
+
+    public float Radius { get; }
+
+    public Projectile(float damage,
+        float radius,
+        GameObject gameObject)
     {
+        Damage = damage;
+        Radius = radius;
         GameObject = gameObject;
         Timeline = new ItemTimeline<ProjectileKey>(MakeKeyFromGameobject());
     }
@@ -19,7 +29,7 @@ public abstract class Projectile : IViewableSpaceObject
         GameObject.transform.position = key.Position;
         GameObject.transform.rotation = key.Rotation;
         GameObject.SetActive(key.Progression < 1);
-        //TODO:: Use progression to display animation
+        //TODO: Use progression to display animation
     }
 
     protected abstract ProjectileKey MakeKeyFromGameobject();
@@ -32,4 +42,16 @@ public abstract class Projectile : IViewableSpaceObject
     public abstract void MoveEntity();
 
     public abstract void UpdateState();
+}
+
+public interface IDamageSource
+{
+    float Damage { get; }
+    Vector3 Position { get; }
+    float Radius { get; }
+}
+
+public interface IHitable
+{
+    bool IsHitBy(IDamageSource source);
 }

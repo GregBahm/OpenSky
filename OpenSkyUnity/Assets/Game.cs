@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using UnityEngine;
 
 public class Game
 {
@@ -11,12 +13,11 @@ public class Game
 
     private readonly CurrentGameState currentGameState;
 
-    public Game(IEnumerable<SpaceshipBlueprint> shipBlueprints)
+    public Game(IEnumerable<SpaceShip> spaceShips)
     {
-        viewableObjects = shipBlueprints.SelectMany(item => item.ViewableObjects).ToList().AsReadOnly();
-        IEnumerable<SpaceShip> spaceships = shipBlueprints.SelectMany(item => item.Spaceships);
-        IEnumerable<Projectile> projectiles = shipBlueprints.SelectMany(item => item.Projectiles);
-        currentGameState = new CurrentGameState(spaceships, projectiles);
+        viewableObjects = spaceShips.SelectMany(item => item.ViewableObjects).ToList().AsReadOnly();
+        IEnumerable<Projectile> projectiles = spaceShips.SelectMany(item => item.Weapons).SelectMany(item => item.ProjectilesPool);
+        currentGameState = new CurrentGameState(spaceShips, projectiles);
     }
 
     public void DisplayTime(float time)
@@ -42,4 +43,36 @@ public class Game
         currentGameState.DoNextKeyframe();
         maxGameTime++;
     }
+}
+
+public class GameBehaviour : MonoBehaviour
+{
+    [SerializeField]
+    private ShipDefinition[] ships;
+    private Game game;
+
+    private void Start()
+    {
+        SpaceShip[] spaceships = ships.Select(ship => ship.ToShip()).ToArray();
+        game = new Game(spaceships);
+    }
+}
+
+[Serializable]
+public class ShipDefinition
+{
+    public int TeamId;
+
+    public GameObject GameObject;
+
+    public SpaceShip ToShip()
+    {
+        SpaceShip ret = new SpaceShip(TeamId, )
+    }
+}
+
+[Serializable]
+public class AmmunitionDefinition
+{
+    public GameObject GameObject;
 }
