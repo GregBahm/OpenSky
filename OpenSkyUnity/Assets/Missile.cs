@@ -3,8 +3,10 @@ using UnityEngine;
 
 public class Missile : Projectile
 {
-    public Missile(GameObject gameObject)
-        : base(gameObject)
+    public Missile(float damage,
+        float radius,
+        GameObject gameObject)
+        : base(damage, radius, gameObject)
     { }
 
     public SpaceShip AttackTarget { get; set; }

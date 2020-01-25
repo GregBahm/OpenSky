@@ -12,7 +12,7 @@ public class SpaceShip : IViewableSpaceObject, IHitable
     public GameObject GameObject { get; }
     public ItemTimeline<SpaceshipKey> Timeline { get; }
     public SpaceManuverability Manuverability { get; }
-    public IReadOnlyCollection<SpaceshipWeapon> Weapons { get; }
+    public IReadOnlyCollection<ISpaceshipWeapon> Weapons { get; }
     public bool IsActive { get; private set; }
     public Vector3 TargetPosition { get; set; }
     public Vector3 CurrentMomentum { get; set; }
@@ -21,17 +21,16 @@ public class SpaceShip : IViewableSpaceObject, IHitable
         get
         {
             yield return this;
-            foreach (IViewableSpaceObject item in Weapons.SelectMany(item => item.ProjectilesPool))
+            foreach (IViewableSpaceObject item in Weapons.SelectMany(item => item.Projectiles))
             {
                 yield return item;
             }
         }
     }
-
-
+    
     public SpaceShip(int teamId, 
         SpaceManuverability manuverability, 
-        IEnumerable<SpaceshipWeapon> weapons,
+        IEnumerable<ISpaceshipWeapon> weapons,
         GameObject gameObject)
     {
         TeamId = teamId;
@@ -75,10 +74,12 @@ public class SpaceShip : IViewableSpaceObject, IHitable
         throw new NotImplementedException();
     }
 
-    internal void InitiateNewAttacks(IEnumerable<SpaceShip> friends, 
-        IEnumerable<SpaceShip> enemies)
+    public void InitiateNewAttacks(IEnumerable<SpaceShip> enemies)
     {
-        throw new NotImplementedException();
+        foreach (ISpaceshipWeapon weapon in Weapons.Where(weapon => weapon.CanInitiateNewAttack))
+        {
+            weapon.TryInitiateNewAttack(enemies);
+        }
     }
 
     public void DisplayAtTime(float time)
@@ -99,11 +100,4 @@ public class SpaceShip : IViewableSpaceObject, IHitable
     {
         throw new NotImplementedException();
     }
-}
-
-public class SpaceshipWeapon
-{
-    public IEnumerable<Projectile> ProjectilesPool { get; }
-
-
 }

@@ -71,9 +71,8 @@ public class CurrentGameState
     {
         foreach (SpaceShip attackingShip in activeShips)
         {
-            IEnumerable<SpaceShip> friends = activeShips.Where(ship => ship.TeamId == attackingShip.TeamId && ship != attackingShip);
             IEnumerable<SpaceShip> enemies = activeShips.Where(ship => ship.TeamId != attackingShip.TeamId && ship != attackingShip);
-            attackingShip.InitiateNewAttacks(friends, enemies);
+            attackingShip.InitiateNewAttacks(enemies);
         }
     }
 }

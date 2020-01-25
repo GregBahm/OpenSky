@@ -16,8 +16,13 @@ public class Game
     public Game(IEnumerable<SpaceShip> spaceShips)
     {
         viewableObjects = spaceShips.SelectMany(item => item.ViewableObjects).ToList().AsReadOnly();
-        IEnumerable<Projectile> projectiles = spaceShips.SelectMany(item => item.Weapons).SelectMany(item => item.ProjectilesPool);
+        IEnumerable<Projectile> projectiles = spaceShips.SelectMany(item => item.Weapons).SelectMany(item => item.Projectiles);
         currentGameState = new CurrentGameState(spaceShips, projectiles);
+    }
+
+    public void Update()
+    {
+        throw new NotImplementedException();
     }
 
     public void DisplayTime(float time)
@@ -43,36 +48,4 @@ public class Game
         currentGameState.DoNextKeyframe();
         maxGameTime++;
     }
-}
-
-public class GameBehaviour : MonoBehaviour
-{
-    [SerializeField]
-    private ShipDefinition[] ships;
-    private Game game;
-
-    private void Start()
-    {
-        SpaceShip[] spaceships = ships.Select(ship => ship.ToShip()).ToArray();
-        game = new Game(spaceships);
-    }
-}
-
-[Serializable]
-public class ShipDefinition
-{
-    public int TeamId;
-
-    public GameObject GameObject;
-
-    public SpaceShip ToShip()
-    {
-        SpaceShip ret = new SpaceShip(TeamId, )
-    }
-}
-
-[Serializable]
-public class AmmunitionDefinition
-{
-    public GameObject GameObject;
 }

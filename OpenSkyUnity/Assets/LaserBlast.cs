@@ -10,8 +10,10 @@ public class LaserBlast : Projectile
 
     public LaserBlast(float speed,
         float duration,
+        float damage,
+        float radius,
         GameObject gameObject)
-        :base(gameObject)
+        :base(damage, radius, gameObject)
     {
         Speed = speed;
         Duration = duration;
