@@ -20,13 +20,12 @@ public class LaserWeapon : ISpaceshipWeapon
     private readonly float delayBetweenVolleys;
     private readonly float delayBetweenBlasts;
 
-    public LaserWeapon(LaserBlastDefinition baseProjectile, 
-        int maxRounds,
+    public LaserWeapon(IEnumerable<LaserBlast> projectiles,
         float delayBetweenVolleys,
         float delayBetweenBlasts,
         TargettingCone targetting)
     {
-        ProjectilesPool = new ProjectilesPool<LaserBlast>(baseProjectile, maxRounds);
+        ProjectilesPool = new ProjectilesPool<LaserBlast>(projectiles);
         this.delayBetweenVolleys = delayBetweenVolleys;
         this.delayBetweenBlasts = delayBetweenBlasts;
     }

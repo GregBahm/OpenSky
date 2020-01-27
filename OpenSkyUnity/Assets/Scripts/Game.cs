@@ -22,7 +22,7 @@ public class Game
 
     public void Update()
     {
-        throw new NotImplementedException();
+
     }
 
     public void DisplayTime(float time)

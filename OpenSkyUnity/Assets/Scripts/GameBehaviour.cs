@@ -10,7 +10,7 @@ public class GameBehaviour : MonoBehaviour
 
     private void Start()
     {
-        SpaceShip[] spaceships = ships.Select(ship => ship.ToShip()).ToArray();
+        SpaceShip[] spaceships = ships.Select(ship => ship.CreateShip()).ToArray();
         game = new Game(spaceships);
     }
 
@@ -28,9 +28,9 @@ public class GameBehaviour : MonoBehaviour
 
         public Transform InitialLocation;
 
-        public SpaceShip ToShip()
+        public SpaceShip CreateShip()
         {
-            throw new NotImplementedException();
+            return Definition.ToSpaceship(TeamId, InitialLocation);
         }
     }
 }
