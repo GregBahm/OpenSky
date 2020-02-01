@@ -42,6 +42,9 @@ public abstract class Projectile : IViewableSpaceObject, IDamageSource
     public abstract void MoveEntity();
 
     public abstract void UpdateState();
+
+    public virtual void OnSpaceshipHit(SpaceShip spaceship)
+    { }
 }
 
 public interface IDamageSource

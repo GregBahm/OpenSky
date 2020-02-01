@@ -2,5 +2,5 @@
 
 public abstract class WeaponDefinition : MonoBehaviour
 {
-    public abstract ISpaceshipWeapon ToWeapon();
+    public abstract ISpaceshipWeapon ToWeapon(SpaceShip ship);
 }

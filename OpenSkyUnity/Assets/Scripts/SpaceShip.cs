@@ -9,6 +9,8 @@ using UnityEngine;
 public class SpaceShip : IViewableSpaceObject, IHitable
 {
     public int TeamId { get; }
+    public float MaxHP { get; }
+    public float CurrentHP { get; private set; }
     public GameObject GameObject { get; }
     public ItemTimeline<SpaceshipKey> Timeline { get; }
     public SpaceManuverability Manuverability { get; }
@@ -28,21 +30,24 @@ public class SpaceShip : IViewableSpaceObject, IHitable
         }
     }
     
-    public SpaceShip(int teamId, 
+    public SpaceShip(int teamId,
+        float hitpoints,
         SpaceManuverability manuverability, 
-        IEnumerable<ISpaceshipWeapon> weapons,
+        IEnumerable<Func<SpaceShip, ISpaceshipWeapon>> shipGetters,
         GameObject gameObject)
     {
         TeamId = teamId;
+        MaxHP = hitpoints;
+        CurrentHP = hitpoints;
         GameObject = gameObject;
         Manuverability = manuverability;
-        Weapons = weapons.ToList().AsReadOnly();
+        Weapons = shipGetters.Select(item => item(this)).ToList().AsReadOnly();
         Timeline = new ItemTimeline<SpaceshipKey>(MakeKeyFromGameobject());
     }
 
     private SpaceshipKey MakeKeyFromGameobject()
     {
-        float destruction = 0;//TODO: Destruction
+        float destruction = CurrentHP / MaxHP;
         float weaponAttack = 0;//TODO: Weapon attack
         return new SpaceshipKey(GameObject.transform.position,
             GameObject.transform.rotation,
@@ -53,7 +58,16 @@ public class SpaceShip : IViewableSpaceObject, IHitable
     public void RegisterDamage(IEnumerable<SpaceShip> activeShips, 
         IEnumerable<Projectile> activeProjectiles)
     {
-
+        float totalDamage = 0;
+        foreach (Projectile projectile in activeProjectiles)
+        {
+            if(IsHitBy(projectile))
+            {
+                totalDamage += projectile.Damage;
+                projectile.OnSpaceshipHit(this);
+            }
+        }
+        CurrentHP -= totalDamage;
     }
 
     public void MoveEntity()
@@ -71,7 +85,11 @@ public class SpaceShip : IViewableSpaceObject, IHitable
     
     public void UpdateState()
     {
-        throw new NotImplementedException();
+        if(CurrentHP < 0)
+        {
+            IsActive = false;
+            //TODO: Figure out how you're going to do a destruction animation
+        }
     }
 
     public void InitiateNewAttacks(IEnumerable<SpaceShip> enemies)

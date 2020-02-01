@@ -8,20 +8,35 @@ public class ShipDefinition : MonoBehaviour
     public float MaxThrust;
     public float MaxAngleChange;
     public float Acceleration;
+    public float Hitpoints;
     public GameObject Prefab;
     public WeaponDefinition[] Weapons;
 
     public SpaceShip ToSpaceship(int teamId, Transform startingLocation)
     {
         SpaceManuverability manuverability = new SpaceManuverability(MaxThrust, MaxAngleChange, Acceleration);
-        IEnumerable<ISpaceshipWeapon> weapons = Weapons.Select(item => item.ToWeapon()).ToArray();
-        GameObject gameObject = Instantiate(Prefab);
-        gameObject.transform.SetParent(startingLocation, false);
-        gameObject.transform.SetParent(null, true);
+        GameObject gameObject = CreateShipGameobject(startingLocation);
         return new SpaceShip(teamId,
+            Hitpoints,
             manuverability,
-            weapons,
+            GetWeaponGetters(),
             gameObject
             );
+    }
+
+    public IEnumerable<Func<SpaceShip, ISpaceshipWeapon>> GetWeaponGetters()
+    {
+        foreach (var weaponDefinition in Weapons)
+        {
+            yield return weaponDefinition.ToWeapon;
+        }
+    }
+
+    private GameObject CreateShipGameobject(Transform startingLocation)
+    {
+        GameObject ret = Instantiate(Prefab);
+        ret.transform.SetParent(startingLocation, false);
+        ret.transform.SetParent(null, true);
+        return ret;
     }
 }

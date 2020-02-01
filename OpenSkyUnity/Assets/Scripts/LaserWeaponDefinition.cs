@@ -15,11 +15,12 @@ public class LaserWeaponDefinition : WeaponDefinition
     public float FiringConeAngle;
     public float FiringConeDistance;
 
-    public override ISpaceshipWeapon ToWeapon()
+    public override ISpaceshipWeapon ToWeapon(SpaceShip ship)
     {
         IEnumerable<LaserBlast> blasts = CreateBlasts();
         TargettingCone targetting = new TargettingCone(FiringConeAngle, FiringConeDistance);
-        return new LaserWeapon(blasts,
+        return new LaserWeapon(ship
+            blasts,
             DelayBetweenVolleys,
             DelayBetweenBlasts,
             targetting

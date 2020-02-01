@@ -46,4 +46,9 @@ public class LaserBlast : Projectile
         currentAge += 1;
         IsActive = currentAge > Duration;
     }
+
+    public override void OnSpaceshipHit(SpaceShip spaceship)
+    {
+        IsActive = false;
+    }
 }
