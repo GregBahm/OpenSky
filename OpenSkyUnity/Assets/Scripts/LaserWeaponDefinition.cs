@@ -19,7 +19,7 @@ public class LaserWeaponDefinition : WeaponDefinition
     {
         IEnumerable<LaserBlast> blasts = CreateBlasts();
         TargettingCone targetting = new TargettingCone(FiringConeAngle, FiringConeDistance);
-        return new LaserWeapon(ship
+        return new LaserWeapon(ship,
             blasts,
             DelayBetweenVolleys,
             DelayBetweenBlasts,

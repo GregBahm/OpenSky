@@ -6,24 +6,23 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-public class SpaceShip : IViewableSpaceObject, IHitable
+public class SpaceShip : IKeyframeRecorder, IHitable
 {
     public int TeamId { get; }
     public float MaxHP { get; }
     public float CurrentHP { get; private set; }
     public GameObject GameObject { get; }
-    public ItemTimeline<SpaceshipKey> Timeline { get; }
     public SpaceManuverability Manuverability { get; }
     public IReadOnlyCollection<ISpaceshipWeapon> Weapons { get; }
     public bool IsActive { get; private set; }
     public Vector3 TargetPosition { get; set; }
     public Vector3 CurrentMomentum { get; set; }
-    public IEnumerable<IViewableSpaceObject> ViewableObjects
+    public IEnumerable<IKeyframeRecorder> ViewableObjects
     {
         get
         {
             yield return this;
-            foreach (IViewableSpaceObject item in Weapons.SelectMany(item => item.Projectiles))
+            foreach (IKeyframeRecorder item in Weapons.SelectMany(item => item.Projectiles))
             {
                 yield return item;
             }
@@ -42,7 +41,6 @@ public class SpaceShip : IViewableSpaceObject, IHitable
         GameObject = gameObject;
         Manuverability = manuverability;
         Weapons = shipGetters.Select(item => item(this)).ToList().AsReadOnly();
-        Timeline = new ItemTimeline<SpaceshipKey>(MakeKeyFromGameobject());
     }
 
     private SpaceshipKey MakeKeyFromGameobject()
@@ -100,21 +98,12 @@ public class SpaceShip : IViewableSpaceObject, IHitable
         }
     }
 
-    public void DisplayAtTime(float time)
-    {
-        SpaceshipKey key = Timeline.GetTransformAtTime(time);
-        GameObject.transform.position = key.Position;
-        GameObject.transform.rotation = key.Rotation;
-        //TODO: display destruction
-        //TODO: display weapon attacks
-    }
-
-    public void RegisterKeyframe()
-    {
-        Timeline.AddKeyframe(MakeKeyFromGameobject());
-    }
-
     public bool IsHitBy(IDamageSource source)
+    {
+        throw new NotImplementedException();
+    }
+
+    public ISpaceObjectKey RecordNextKey()
     {
         throw new NotImplementedException();
     }

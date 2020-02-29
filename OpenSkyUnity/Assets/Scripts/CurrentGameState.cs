@@ -22,7 +22,7 @@ public class CurrentGameState
         }
     }
 
-    internal void DoNextKeyframe()
+    internal void AdvanceGameOneStep()
     {
         IEnumerable<SpaceShip> activeShips = allPossibleSpaceships.Where(ship => ship.IsActive).ToArray();
         IEnumerable<Projectile> activeProjectiles = allPossibleProjectiles.Where(projectile => projectile.IsActive).ToArray();

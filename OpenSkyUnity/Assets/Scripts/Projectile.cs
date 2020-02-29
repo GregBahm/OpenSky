@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public abstract class Projectile : IViewableSpaceObject, IDamageSource
+public abstract class Projectile : IKeyframeRecorder, IDamageSource
 {
     public bool IsActive { get; protected set; }
 
