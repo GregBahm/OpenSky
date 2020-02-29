@@ -10,3 +10,4 @@
 *.sln
 *.csproj
 /OpenSkyUnity/Packages
+/.vs
