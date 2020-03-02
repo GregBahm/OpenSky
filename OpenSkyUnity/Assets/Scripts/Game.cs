@@ -12,7 +12,7 @@ public class Game
 
     public Game(IEnumerable<SpaceShip> spaceShips)
     {
-        IEnumerable<IKeyframeRecorder> viewables = spaceShips.SelectMany(item => item.ViewableObjects);
+        IEnumerable<IAnimationRecorder> viewables = spaceShips.SelectMany(item => item.ViewableObjects);
         timeline = new MasterTimeline(viewables);
         IEnumerable<Projectile> projectiles = spaceShips.SelectMany(item => item.Weapons).SelectMany(item => item.Projectiles);
         currentGameState = new CurrentGameState(spaceShips, projectiles);

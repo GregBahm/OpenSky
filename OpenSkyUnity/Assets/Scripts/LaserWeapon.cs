@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class LaserWeapon : ISpaceshipWeapon
+public class LaserWeapon : AnimationRecorder<LaserWeaponKey>,  ISpaceshipWeapon
 {
     public SpaceShip Ship { get; }
 
@@ -20,6 +20,8 @@ public class LaserWeapon : ISpaceshipWeapon
             throw new NotImplementedException();
         }
     }
+
+    public override bool IsActive => Ship.IsActive;
 
     private readonly float delayBetweenVolleys;
     private float timeSinceLastVolley;
@@ -74,5 +76,15 @@ public class LaserWeapon : ISpaceshipWeapon
         Quaternion rot = Ship.GameObject.transform.rotation;
         blast.Fire(pos, rot);
         this.timeBetweenLastBlast = 0;
+    }
+
+    protected override LaserWeaponKey MakeKeyFromCurrentState()
+    {
+        return new LaserWeaponKey(timeSinceLastVolley);
+    }
+
+    protected override void Display(LaserWeaponKey key)
+    {
+        // TODO: create a laser weapon game object
     }
 }

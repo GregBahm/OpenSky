@@ -1,4 +1,5 @@
-﻿public interface IKeyframeRecorder
+﻿public interface IAnimationRecorder
 {
-    ISpaceObjectKey RecordNextKey();
+    bool HasAnimationToRecord { get; }
+    ISpaceObjectAnimator GetNextAnimator();
 }

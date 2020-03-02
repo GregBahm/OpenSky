@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-public interface ISpaceshipWeapon
+public interface ISpaceshipWeapon : IAnimationRecorder
 {
     IEnumerable<Projectile> Projectiles { get; }
     bool CanInitiateNewAttack { get; }

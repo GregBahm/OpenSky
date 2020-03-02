@@ -6,10 +6,10 @@ using UnityEngine;
 
 public class MasterTimeline
 {
-    private readonly ReadOnlyCollection<IKeyframeRecorder> recorders;
+    private readonly ReadOnlyCollection<IAnimationRecorder> recorders;
     private readonly List<GameFrame> frames = new List<GameFrame>();
 
-    public MasterTimeline(IEnumerable<IKeyframeRecorder> viewables)
+    public MasterTimeline(IEnumerable<IAnimationRecorder> viewables)
     {
         recorders = viewables.ToList().AsReadOnly();
     }
@@ -32,12 +32,12 @@ public class MasterTimeline
 
     internal void CaptureKeyframe()
     {
-        IEnumerable<ISpaceObjectKey> keys = GatherKeys();
-        GameFrame newFrame = new GameFrame(keys);
+        IEnumerable<ISpaceObjectAnimator> animators = GatherAnimators();
+        GameFrame newFrame = new GameFrame(animators);
     }
 
-    private IEnumerable<ISpaceObjectKey> GatherKeys()
+    private IEnumerable<ISpaceObjectAnimator> GatherAnimators()
     {
-        return recorders.Select(item => item.RecordNextKey()).Where(item => item != null);
+        return recorders.Where(item => item.HasAnimationToRecord).Select(item => item.GetNextAnimator());
     }
 }

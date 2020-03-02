@@ -21,7 +21,7 @@ public class Missile : Projectile
         throw new NotImplementedException();
     }
 
-    protected override ProjectileKey MakeKeyFromGameobject()
+    protected override ProjectileKey MakeKeyFromCurrentState()
     {
         throw new NotImplementedException();
     }

@@ -22,7 +22,7 @@ public class LaserBlast : Projectile
     public void Fire(Vector3 position, Quaternion rotation)
     {
         currentAge = 0;
-        IsActive = true;
+        this.isActive = true;
         GameObject.transform.position = position;
         GameObject.transform.rotation = rotation;
     }
@@ -33,7 +33,7 @@ public class LaserBlast : Projectile
         this.GameObject.transform.position += movement;
     }
 
-    protected override ProjectileKey MakeKeyFromGameobject()
+    protected override ProjectileKey MakeKeyFromCurrentState()
     {
         float progression = currentAge / Duration;
         return new ProjectileKey(GameObject.transform.position,
@@ -44,11 +44,11 @@ public class LaserBlast : Projectile
     public override void UpdateState()
     {
         currentAge += 1;
-        IsActive = currentAge > Duration;
+        this.isActive = currentAge > Duration;
     }
 
     public override void OnSpaceshipHit(SpaceShip spaceship)
     {
-        IsActive = false;
+        this.isActive = false;
     }
 }

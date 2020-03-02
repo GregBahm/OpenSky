@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public struct ProjectileKey
+public struct ProjectileKey : ISpaceObjectKey<ProjectileKey>
 {
     public Vector3 Position { get; }
     public Quaternion Rotation { get; }

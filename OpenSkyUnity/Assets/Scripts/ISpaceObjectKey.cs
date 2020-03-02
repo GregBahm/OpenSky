@@ -1,4 +1,4 @@
-﻿public interface ISpaceObjectKey
+﻿public interface ISpaceObjectKey<T>
 {
-    void Display(float timeWithinFrame);
+    T LerpWith(T nextKey, float param);
 }
