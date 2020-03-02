@@ -17,11 +17,7 @@ public class Game
         IEnumerable<Projectile> projectiles = spaceShips.SelectMany(item => item.Weapons).SelectMany(item => item.Projectiles);
         currentGameState = new CurrentGameState(spaceShips, projectiles);
     }
-
-    public void Update()
-    {
-
-    }
+    
     public void AdvanceToNextTurn(IEnumerable<SpaceShipOrders> unitOrders)
     {
         currentGameState.SetUnitOrders(unitOrders);
@@ -29,6 +25,12 @@ public class Game
         {
             DoNextKeyframe();
         }
+        maxGameTime += keyframesPerTurn;
+    }
+
+    public void DisplayNormalizedGametime(float normalizedTime)
+    {
+        timeline.DisplayAt(normalizedTime * maxGameTime);
     }
 
     private void DoNextKeyframe()

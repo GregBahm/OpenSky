@@ -8,6 +8,10 @@ public class GameBehaviour : MonoBehaviour
     private InitialShip[] ships;
     private Game game;
 
+    [Range(0, 1)]
+    public float TimeToDisplay;
+    public bool AdvanceToNextTurn;
+
     private void Start()
     {
         SpaceShip[] spaceships = ships.Select(ship => ship.CreateShip()).ToArray();
@@ -16,7 +20,15 @@ public class GameBehaviour : MonoBehaviour
 
     private void Update()
     {
-        game.Update();
+        if(AdvanceToNextTurn)
+        {
+            AdvanceToNextTurn = false;
+            //game.AdvanceToNextTurn(spaceshipOrders);
+        }
+        else
+        {
+            game.DisplayNormalizedGametime(TimeToDisplay);
+        }
     }
 
     [Serializable]

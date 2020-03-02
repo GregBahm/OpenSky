@@ -916,7 +916,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Waypoint: {fileID: 74312643}
   Ship: {fileID: 1232842703}
-  Iterations: 10
+  Iterations: 50
+  Acceleration: 0.02
+  MaxAngleChange: 1.82
+  MaxThrust: 2
 --- !u!4 &1314125907
 Transform:
   m_ObjectHideFlags: 0

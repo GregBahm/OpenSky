@@ -18,16 +18,31 @@ public class FlightExperiment : MonoBehaviour
 
     private void Update()
     {
-        for (int i = 0; i < Iterations; i++)
+        CurrentMomentum = Vector3.zero;
+        Vector3 targetPos = Waypoint.transform.position;
+        for (int i = 1; i < Iterations; i++)
         {
-            float param = (float)(i + 1) / Iterations;
-            PlaceShip(shipIterations[i].transform, param);
+
+            MoveEntity(shipIterations[i -1].transform, shipIterations[i].transform, targetPos);
         }
     }
 
-    private void PlaceShip(Transform transform, float param)
+    Vector3 CurrentMomentum;
+    public float Acceleration;
+    public float MaxAngleChange;
+    public float MaxThrust;
+
+    public void MoveEntity(Transform priorTransform, Transform nextTransform, Vector3 targetPosition)
     {
-        throw new NotImplementedException();
+        Vector3 toTarget = targetPosition - priorTransform.position;
+        Quaternion lookRot = Quaternion.LookRotation(toTarget);
+        nextTransform.rotation = Quaternion.RotateTowards(priorTransform.rotation, lookRot, MaxAngleChange);
+        CurrentMomentum = CurrentMomentum + nextTransform.forward * Acceleration;
+        if (CurrentMomentum.magnitude > MaxThrust)
+        {
+            CurrentMomentum = CurrentMomentum.normalized * MaxThrust;
+        }
+        nextTransform.position = priorTransform.position + CurrentMomentum;
     }
 
     private IEnumerable<GameObject> CreateShipIterations()
