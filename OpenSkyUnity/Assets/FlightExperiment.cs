@@ -8,17 +8,19 @@ public class PathSegment
 {
     public WaypointCreator StartPoint { get; }
     public WaypointCreator EndPoint { get; }
+    private readonly FlightExperiment mothership;
 
     private readonly Transform[] shipIterations;
 
-    public PathSegment(WaypointCreator startPoint, WaypointCreator endPoint, Transform[] shipIterations)
+    public PathSegment(WaypointCreator startPoint, WaypointCreator endPoint, Transform[] shipIterations, FlightExperiment mothership)
     {
         StartPoint = startPoint;
         EndPoint = endPoint;
         this.shipIterations = shipIterations;
+        this.mothership = mothership;
     }
 
-    public Vector3 LastIterationPosition { get { return shipIterations[shipIterations.Length - 1].position; } }
+    public Transform LastIteration { get { return shipIterations[shipIterations.Length - 1]; } }
 
     public void SetShipScale(Vector3 scale)
     {
@@ -28,44 +30,50 @@ public class PathSegment
         }
     }
 
-    public void SetShipRotations(Vector3 endOfLastSegment, float rotationStrength)
+    public void SetShipRotations(Vector3 lastPos, Vector3 lastUp)
     {
-        SetStartingRotation(endOfLastSegment, rotationStrength);
+        SetStartingRotation(lastPos, lastUp);
         for (int i = 1; i < shipIterations.Length - 1; i++)
         {
             Transform previous = shipIterations[i - 1];
             Transform current = shipIterations[i];
             Transform next = shipIterations[i + 1];
-
-            current.rotation = GetShipRotation(previous.position, current.position, next.position, rotationStrength);
+            current.rotation = GetShipRotation(previous.position, current.position, next.position, previous.up);
         }
-        SetEndingRotation(rotationStrength);
+        SetEndingRotation();
     }
 
-    private void SetStartingRotation(Vector3 endOfLastSegment, float rotationStrength)
+    private void SetStartingRotation(Vector3 lastPos, Vector3 lastUp)
     {
         Transform current = shipIterations[0];
         Vector3 next = shipIterations[1].position;
-        current.rotation = GetShipRotation(endOfLastSegment, current.position, next, rotationStrength);
+        current.rotation = GetShipRotation(lastPos, current.position, next, lastUp);
     }
 
-    private void SetEndingRotation(float rotationStrength)
+    private void SetEndingRotation()
     {
         Transform current = shipIterations[shipIterations.Length - 1];
         Transform previous = shipIterations[shipIterations.Length - 2];
-        current.rotation = GetShipRotation(previous.position, current.position, EndPoint.transform.position, rotationStrength);
+        current.rotation = GetShipRotation(previous.position, current.position, EndPoint.transform.position, previous.up);
     }
 
-    private static Quaternion GetShipRotation(Vector3 previous, Vector3 current, Vector3 next, float rotationStrength)
+    private Quaternion GetShipRotation(
+        Vector3 previous,
+        Vector3 current,
+        Vector3 next,
+        Vector3 previousUp)
     {
         Vector3 toCurrent = current - previous;
         Vector3 toNext = next - current;
         Vector3 average = (toCurrent + toNext) / 2;
 
         Vector3 maxTilt = (toNext.normalized - toCurrent.normalized) / 2;
-        float mag = Mathf.Pow(maxTilt.magnitude, rotationStrength);
+
+        float mag = Mathf.Pow(maxTilt.magnitude, this.mothership.RotationUpWeight);
         Vector3 up = Vector3.Lerp(Vector3.up, maxTilt, mag);
-        return Quaternion.LookRotation(average, up);
+
+        Vector3 progressive = Vector3.Lerp(previousUp, up, this.mothership.RotationStrength);
+        return Quaternion.LookRotation(average, progressive);
     }
 
 
@@ -96,6 +104,7 @@ public class FlightExperiment : MonoBehaviour
     public GameObject Ship;
     public int Iterations;
 
+    public float RotationUpWeight;
     public float RotationStrength;
 
     [Range(0, 1)]
@@ -115,25 +124,24 @@ public class FlightExperiment : MonoBehaviour
             WaypointCreator start = Waypoints[i - 1];
             WaypointCreator end = Waypoints[i];
             Transform[] shipIterations = CreateShipIterations().ToArray();
-            yield return new PathSegment(start, end, shipIterations);
+            yield return new PathSegment(start, end, shipIterations, this);
         }
     }
 
     private void Update()
     {
         Vector3 scale = new Vector3(ShipScale, ShipScale, ShipScale);
-        Vector3 lastIterationPosition = Vector3.zero;
+        Vector3 lastPos = Waypoints[0].transform.position - Waypoints[0].transform.forward;
+        Vector3 lastUp = Vector3.up;
         foreach (PathSegment segment in pathSegments)
         {
             segment.SetShipPositions();
-            segment.SetShipRotations(lastIterationPosition, RotationStrength);
+            segment.SetShipRotations(lastPos, lastUp);
             segment.SetShipScale(scale);
-            lastIterationPosition = segment.LastIterationPosition;
+            lastUp = segment.LastIteration.up;
+            lastPos = segment.LastIteration.position;
 
             BezierCurve currentPath = segment.GetCurrentPath();
-
-            Debug.DrawLine(currentPath.Start, currentPath.StartAnchor, Color.red);
-            Debug.DrawLine(currentPath.End, currentPath.EndAnchor, Color.green);
         }
     }
 
@@ -174,5 +182,19 @@ public struct BezierCurve
         Vector3 abc = Vector3.Lerp(ab, bc, param);
         Vector3 bcd = Vector3.Lerp(bc, cd, param);
         return Vector3.Lerp(abc, bcd, param);
+    }
+
+    public float MeasureCurve(int precision)
+    {
+        float ret = 0;
+        Vector3 lastPoint = Start;
+        for (int i = 0; i < precision; i++)
+        {
+            float param = (float)i / precision;
+            Vector3 nextPoint = PlotPosition(param);
+            ret += (lastPoint = nextPoint).magnitude;
+            lastPoint = nextPoint;
+        }
+        return ret;
     }
 }
