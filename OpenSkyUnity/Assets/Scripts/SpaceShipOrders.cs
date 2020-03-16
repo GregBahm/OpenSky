@@ -10,6 +10,6 @@ public class SpaceShipOrders
 
     internal void ApplyOrders()
     {
-        Unit.TargetPosition = TargetPosition;
+        
     }
 }

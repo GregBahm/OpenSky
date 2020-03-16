@@ -23,7 +23,8 @@ public class Game
         currentGameState.SetUnitOrders(unitOrders);
         for (int i = 0; i < keyframesPerTurn; i++)
         {
-            DoNextKeyframe();
+            float turnProgress = (float)i / keyframesPerTurn;
+            DoNextKeyframe(turnProgress);
         }
         maxGameTime += keyframesPerTurn;
     }
@@ -33,9 +34,9 @@ public class Game
         timeline.DisplayAt(normalizedTime * maxGameTime);
     }
 
-    private void DoNextKeyframe()
+    private void DoNextKeyframe(float turnProgress)
     {
-        currentGameState.AdvanceGameOneStep();
+        currentGameState.AdvanceGameOneStep(turnProgress);
         timeline.CaptureKeyframe();
         maxGameTime++;
     }

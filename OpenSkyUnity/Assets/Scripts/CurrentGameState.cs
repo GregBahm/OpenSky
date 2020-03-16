@@ -22,23 +22,24 @@ public class CurrentGameState
         }
     }
 
-    internal void AdvanceGameOneStep()
+    internal void AdvanceGameOneStep(float turnProgress)
     {
         IEnumerable<SpaceShip> activeShips = allPossibleSpaceships.Where(ship => ship.IsActive).ToArray();
         IEnumerable<Projectile> activeProjectiles = allPossibleProjectiles.Where(projectile => projectile.IsActive).ToArray();
 
-        MoveEntities(activeShips, activeProjectiles);
+        MoveEntities(activeShips, activeProjectiles, turnProgress);
         RegisterDamage(activeShips, activeProjectiles);
         UpdateState();
         InitiateNewAttacks(activeShips);
     }
 
     private void MoveEntities(IEnumerable<SpaceShip> activeShips, 
-        IEnumerable<Projectile> activeProjectiles)
+        IEnumerable<Projectile> activeProjectiles,
+        float turnProgress)
     {
         foreach (SpaceShip ship in activeShips)
         {
-            ship.MoveEntity();
+            ship.MoveEntity(turnProgress);
         }
         foreach (Projectile projectile in activeProjectiles)
         {

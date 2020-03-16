@@ -14,8 +14,7 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
     public GameObject GameObject { get; }
     public SpaceManuverability Manuverability { get; }
     public IReadOnlyCollection<ISpaceshipWeapon> Weapons { get; }
-    public Vector3 TargetPosition { get; set; }
-    public Vector3 CurrentMomentum { get; set; }
+    public FlightPath CurrentPath { get; private set; }
     public IEnumerable<IAnimationRecorder> ViewableObjects
     {
         get
@@ -67,17 +66,10 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
         CurrentHP -= totalDamage;
     }
 
-    public void MoveEntity()
+    public void MoveEntity(float turnProgress)
     {
-        Vector3 toTarget = GameObject.transform.position - TargetPosition;
-        Quaternion lookRot = Quaternion.LookRotation(toTarget);
-        GameObject.transform.rotation = Quaternion.RotateTowards(GameObject.transform.rotation, lookRot, Manuverability.MaxAngleChange);
-        CurrentMomentum = CurrentMomentum + GameObject.transform.forward * Manuverability.Acceleration;
-        if(CurrentMomentum.magnitude > Manuverability.MaxThrust)
-        {
-            CurrentMomentum = CurrentMomentum.normalized * Manuverability.MaxThrust;
-        }
-        GameObject.transform.position += CurrentMomentum;
+
+        // TODO: Integrate the Flight path system
     }
     
     public void UpdateState()
