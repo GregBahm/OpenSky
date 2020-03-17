@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class FlightExperiment : MonoBehaviour
 {
-    public WaypointCreator[] Waypoints;
+    public Waypoint[] Waypoints;
     public GameObject Ship;
     public int Iterations;
 
@@ -27,8 +27,8 @@ public class FlightExperiment : MonoBehaviour
     {
         for (int i = 1; i < Waypoints.Length; i++)
         {
-            WaypointCreator start = Waypoints[i - 1];
-            WaypointCreator end = Waypoints[i];
+            Waypoint start = Waypoints[i - 1];
+            Waypoint end = Waypoints[i];
             Transform[] shipIterations = CreateShipIterations().ToArray();
             yield return new FlightPathDisplay(start, end, shipIterations, this);
         }
@@ -59,8 +59,8 @@ public class FlightExperiment : MonoBehaviour
 
 public class FlightPathDisplay
 {
-    public WaypointCreator StartPoint { get; }
-    public WaypointCreator EndPoint { get; }
+    public Waypoint StartPoint { get; }
+    public Waypoint EndPoint { get; }
 
     private readonly FlightExperiment mothership;
 
@@ -68,7 +68,7 @@ public class FlightPathDisplay
 
     public Transform LastIteration { get { return shipIterations[shipIterations.Length - 1]; } }
 
-    public FlightPathDisplay(WaypointCreator startPoint, WaypointCreator endPoint, Transform[] shipIterations, FlightExperiment mothership)
+    public FlightPathDisplay(Waypoint startPoint, Waypoint endPoint, Transform[] shipIterations, FlightExperiment mothership)
     {
         StartPoint = startPoint;
         EndPoint = endPoint;

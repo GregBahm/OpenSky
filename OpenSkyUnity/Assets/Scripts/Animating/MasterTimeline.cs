@@ -16,6 +16,10 @@ public class MasterTimeline
 
     public void DisplayAt(float time)
     {
+        if(frames.Count == 0)
+        {
+            return;
+        }
         if(time > frames.Count)
         {
             throw new InvalidOperationException("Can't DisplayAt() " + time + " when there are only " + frames.Count + " frames.");

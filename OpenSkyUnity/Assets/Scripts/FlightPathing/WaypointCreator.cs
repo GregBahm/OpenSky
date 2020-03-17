@@ -3,7 +3,10 @@
 public class WaypointCreator : MonoBehaviour
 {
     [SerializeField]
-    private Transform weightHandle;
+    private Waypoint start;
 
-    public float Weight { get { return weightHandle.localPosition.z; } }
+    [SerializeField]
+    private Waypoint end;
+
+    SpaceShip ship;
 }

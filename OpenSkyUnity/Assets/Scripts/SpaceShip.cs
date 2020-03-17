@@ -14,7 +14,7 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
     public GameObject GameObject { get; }
     public SpaceManuverability Manuverability { get; }
     public IReadOnlyCollection<ISpaceshipWeapon> Weapons { get; }
-    public FlightPath CurrentPath { get; private set; }
+    public FlightPath CurrentPath { get; set; }
     public IEnumerable<IAnimationRecorder> ViewableObjects
     {
         get

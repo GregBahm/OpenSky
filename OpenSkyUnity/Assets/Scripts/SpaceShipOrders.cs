@@ -6,17 +6,17 @@ public class SpaceShipOrders
 {
     public SpaceShip Unit { get; }
 
-    public WaypointCreator StartPoint { get; }
-    public WaypointCreator EndPoint { get; }
+    public Waypoint StartPoint { get; }
+    public Waypoint EndPoint { get; }
 
     internal void ApplyOrders()
     {
         Unit.CurrentPath = new FlightPath(GetCurrentPath(),
-            mothership.RotationUpWeight,
-            mothership.RotationStrength,
-            mothership.Iterations,
-            fromPosition,
-            fromUp);
+            Unit.Manuverability.RotationUpWeight,
+            Unit.Manuverability.RotationStrength,
+            Game.KeyframesPerTurn,
+            Unit.GameObject.transform.position,
+            Unit.GameObject.transform.up);
     }
 
     private BezierCurve GetCurrentPath()

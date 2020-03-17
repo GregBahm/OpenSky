@@ -6,7 +6,8 @@ using UnityEngine;
 public class ShipDefinition : MonoBehaviour
 {
     public float MaxThrust;
-    public float MaxAngleChange;
+    public float RotationUpWeight = 0.2f;
+    public float RotationStrength = 0.5f;
     public float Acceleration;
     public float Hitpoints;
     public GameObject Prefab;
@@ -14,7 +15,7 @@ public class ShipDefinition : MonoBehaviour
 
     public SpaceShip ToSpaceship(int teamId, Transform startingLocation)
     {
-        SpaceManuverability manuverability = new SpaceManuverability(MaxThrust, MaxAngleChange, Acceleration);
+        SpaceManuverability manuverability = new SpaceManuverability(MaxThrust, RotationStrength, RotationUpWeight, Acceleration);
         GameObject gameObject = CreateShipGameobject(startingLocation);
         return new SpaceShip(teamId,
             Hitpoints,

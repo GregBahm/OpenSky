@@ -3,7 +3,7 @@ using System.Linq;
 
 public class Game
 {
-    private const int keyframesPerTurn = 50;
+    public const int KeyframesPerTurn = 50;
     private int maxGameTime = 0;
 
     private readonly MasterTimeline timeline;
@@ -20,13 +20,19 @@ public class Game
     
     public void AdvanceToNextTurn(IEnumerable<SpaceShipOrders> unitOrders)
     {
+        SetTimeToCurrent();
         currentGameState.SetUnitOrders(unitOrders);
-        for (int i = 0; i < keyframesPerTurn; i++)
+        for (int i = 0; i < KeyframesPerTurn; i++)
         {
-            float turnProgress = (float)i / keyframesPerTurn;
+            float turnProgress = (float)i / KeyframesPerTurn;
             DoNextKeyframe(turnProgress);
         }
-        maxGameTime += keyframesPerTurn;
+        maxGameTime += KeyframesPerTurn;
+    }
+
+    public void SetTimeToCurrent()
+    {
+        DisplayNormalizedGametime(1);
     }
 
     public void DisplayNormalizedGametime(float normalizedTime)

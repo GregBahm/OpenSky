@@ -1,15 +1,18 @@
 ﻿public class SpaceManuverability
 {
     public float MaxThrust { get; }
-    public float MaxAngleChange { get; }
     public float Acceleration { get; }
+    public float RotationUpWeight { get; }
+    public float RotationStrength { get; }
 
     public SpaceManuverability(float maxThrust,
-        float maxAngleChange,
+        float rotationStrength,
+        float rotationUpWeight,
         float acceleration)
     {
         MaxThrust = maxThrust;
-        MaxAngleChange = maxAngleChange;
+        RotationUpWeight = rotationUpWeight;
+        RotationStrength = rotationStrength;
         Acceleration = acceleration;
     }
 }
