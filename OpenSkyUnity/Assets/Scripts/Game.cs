@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 public class Game
@@ -9,25 +10,33 @@ public class Game
     private readonly MasterTimeline timeline;
 
     private readonly CurrentGameState currentGameState;
+    private readonly ReadOnlyCollection<IShipOrdersSource> orderCreators;
 
-    public Game(IEnumerable<SpaceShip> spaceShips)
+    public Game(IEnumerable<SpaceShip> spaceShips, IEnumerable<IShipOrdersSource> orderCreators)
     {
+        this.orderCreators = orderCreators.ToList().AsReadOnly();
         IEnumerable<IAnimationRecorder> viewables = spaceShips.SelectMany(item => item.ViewableObjects);
         timeline = new MasterTimeline(viewables);
         IEnumerable<Projectile> projectiles = spaceShips.SelectMany(item => item.Weapons).SelectMany(item => item.Projectiles);
         currentGameState = new CurrentGameState(spaceShips, projectiles);
     }
     
-    public void AdvanceToNextTurn(IEnumerable<SpaceShipOrders> unitOrders)
+    public void AdvanceToNextTurn()
     {
         SetTimeToCurrent();
-        currentGameState.SetUnitOrders(unitOrders);
+        foreach (IShipOrdersSource order in orderCreators)
+        {
+            order.Apply();
+        }
         for (int i = 0; i < KeyframesPerTurn; i++)
         {
-            float turnProgress = (float)i / KeyframesPerTurn;
-            DoNextKeyframe(turnProgress);
+            DoNextKeyframe(i);
         }
         maxGameTime += KeyframesPerTurn;
+        foreach (IShipOrdersSource order in orderCreators)
+        {
+            order.SetupForNextTurn();
+        }
     }
 
     public void SetTimeToCurrent()
@@ -40,9 +49,9 @@ public class Game
         timeline.DisplayAt(normalizedTime * maxGameTime);
     }
 
-    private void DoNextKeyframe(float turnProgress)
+    private void DoNextKeyframe(int turnStep)
     {
-        currentGameState.AdvanceGameOneStep(turnProgress);
+        currentGameState.AdvanceGameOneStep(turnStep);
         timeline.CaptureKeyframe();
         maxGameTime++;
     }

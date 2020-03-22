@@ -11,6 +11,7 @@ public class ShipDefinition : MonoBehaviour
     public float Acceleration;
     public float Hitpoints;
     public GameObject Prefab;
+    public GameObject LocalOrdersPrefab;
     public WeaponDefinition[] Weapons;
 
     public SpaceShip ToSpaceship(int teamId, Transform startingLocation)
@@ -23,6 +24,15 @@ public class ShipDefinition : MonoBehaviour
             GetWeaponGetters(),
             gameObject
             );
+    }
+
+    public IShipOrdersSource CreateOrdersSource(SpaceShip ship)
+    {
+        // TODO: Only do this if the ship is locally controlled
+        GameObject obj = Instantiate(LocalOrdersPrefab);
+        LocalOrdersCreator ret = obj.GetComponent<LocalOrdersCreator>();
+        ret.Initialize(ship);
+        return ret;
     }
 
     public IEnumerable<Func<SpaceShip, ISpaceshipWeapon>> GetWeaponGetters()

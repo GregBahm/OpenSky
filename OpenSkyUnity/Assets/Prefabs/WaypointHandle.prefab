@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1573049338924321465}
   - component: {fileID: 1573049338924321463}
   - component: {fileID: 1573049338924321462}
-  - component: {fileID: 1573049338924321464}
+  - component: {fileID: 8452523067205163602}
   m_Layer: 0
   m_Name: WaypointHandle
   m_TagString: Untagged
@@ -27,7 +27,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1573049338924321467}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.78, y: -0.24224424, z: -2.93}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1573049339492193464}
@@ -82,7 +82,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
---- !u!114 &1573049338924321464
+--- !u!114 &8452523067205163602
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -91,7 +91,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1573049338924321467}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad78f9be53604d84b86833a6c636c5c3, type: 3}
+  m_Script: {fileID: 11500000, guid: 20fd9b4cdaa91fe4f8d81b2a7529eca2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   weightHandle: {fileID: 1573049339492193464}

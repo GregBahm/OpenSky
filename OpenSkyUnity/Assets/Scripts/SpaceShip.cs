@@ -48,7 +48,7 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
         GameObject = gameObject;
         Manuverability = manuverability;
         Weapons = shipGetters.Select(item => item(this)).ToList().AsReadOnly();
-        viewModel = new SpaceshipViewModel(gameObject);
+        this.viewModel = new SpaceshipViewModel(gameObject);
     }
 
     public void RegisterDamage(IEnumerable<SpaceShip> activeShips, 
@@ -66,10 +66,14 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
         CurrentHP -= totalDamage;
     }
 
-    public void MoveEntity(float turnProgress)
+    public void MoveEntity(int turnStep)
     {
+        Pose pose = CurrentPath.Poses[turnStep];
+        
+        // TODO: Handle near ship avoidance here
 
-        // TODO: Integrate the Flight path system
+        GameObject.transform.position = pose.position;
+        GameObject.transform.rotation = pose.rotation;
     }
     
     public void UpdateState()

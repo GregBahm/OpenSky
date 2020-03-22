@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Linq;
 using UnityEngine;
 
@@ -14,8 +15,16 @@ public class GameBehaviour : MonoBehaviour
 
     private void Start()
     {
-        SpaceShip[] spaceships = ships.Select(ship => ship.CreateShip()).ToArray();
-        game = new Game(spaceships);
+        ShipStuff[] shipStuff = ships.Select(ship => CreateShip(ship)).ToArray();
+        game = new Game(shipStuff.Select(item => item.SpaceShip), 
+            shipStuff.Select(item => item.OrdersSource));
+    }
+
+    private ShipStuff CreateShip(InitialShip initialShip)
+    {
+        SpaceShip ship = initialShip.Definition.ToSpaceship(initialShip.TeamId, initialShip.InitialLocation);
+        IShipOrdersSource ordersSource = initialShip.Definition.CreateOrdersSource(ship);
+        return new ShipStuff(ship, ordersSource);
     }
 
     private void Update()
@@ -23,7 +32,7 @@ public class GameBehaviour : MonoBehaviour
         if(AdvanceToNextTurn)
         {
             AdvanceToNextTurn = false;
-            //game.AdvanceToNextTurn(spaceshipOrders);
+            game.AdvanceToNextTurn();
         }
         else
         {
@@ -39,10 +48,17 @@ public class GameBehaviour : MonoBehaviour
         public ShipDefinition Definition;
 
         public Transform InitialLocation;
+    }
 
-        public SpaceShip CreateShip()
+    private class ShipStuff
+    {
+        public SpaceShip SpaceShip { get; }
+        public IShipOrdersSource OrdersSource { get; }
+
+        public ShipStuff(SpaceShip spaceShip, IShipOrdersSource ordersSource)
         {
-            return Definition.ToSpaceship(TeamId, InitialLocation);
+            SpaceShip = spaceShip;
+            OrdersSource = ordersSource;
         }
     }
 }

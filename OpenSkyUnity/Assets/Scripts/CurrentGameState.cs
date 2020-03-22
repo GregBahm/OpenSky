@@ -13,21 +13,13 @@ public class CurrentGameState
         this.allPossibleProjectiles = projectiles.ToList().AsReadOnly();
         this.allPossibleSpaceships = spaceships.ToList().AsReadOnly();
     }
-
-    public void SetUnitOrders(IEnumerable<SpaceShipOrders> unitOrders)
-    {
-        foreach (SpaceShipOrders order in unitOrders)
-        {
-            order.ApplyOrders();
-        }
-    }
-
-    internal void AdvanceGameOneStep(float turnProgress)
+    
+    internal void AdvanceGameOneStep(int turnStep)
     {
         IEnumerable<SpaceShip> activeShips = allPossibleSpaceships.Where(ship => ship.IsActive).ToArray();
         IEnumerable<Projectile> activeProjectiles = allPossibleProjectiles.Where(projectile => projectile.IsActive).ToArray();
 
-        MoveEntities(activeShips, activeProjectiles, turnProgress);
+        MoveEntities(activeShips, activeProjectiles, turnStep);
         RegisterDamage(activeShips, activeProjectiles);
         UpdateState();
         InitiateNewAttacks(activeShips);
@@ -35,11 +27,11 @@ public class CurrentGameState
 
     private void MoveEntities(IEnumerable<SpaceShip> activeShips, 
         IEnumerable<Projectile> activeProjectiles,
-        float turnProgress)
+        int turnStep)
     {
         foreach (SpaceShip ship in activeShips)
         {
-            ship.MoveEntity(turnProgress);
+            ship.MoveEntity(turnStep);
         }
         foreach (Projectile projectile in activeProjectiles)
         {
