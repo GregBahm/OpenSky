@@ -9,6 +9,8 @@ public class MasterTimeline
     private readonly ReadOnlyCollection<IAnimationRecorder> recorders;
     private readonly List<GameFrame> frames = new List<GameFrame>();
 
+    public float CurrentTime { get; private set; }
+
     public MasterTimeline(IEnumerable<IAnimationRecorder> viewables)
     {
         recorders = viewables.ToList().AsReadOnly();
@@ -32,16 +34,32 @@ public class MasterTimeline
             timeWithinFrame = 1;
         }
         frames[frame].Display(timeWithinFrame);
+        CurrentTime = time;
     }
 
-    internal void CaptureKeyframe()
+    internal void FinishKeyframeCapture()
     {
         IEnumerable<ISpaceObjectAnimator> animators = GatherAnimators();
         GameFrame newFrame = new GameFrame(animators);
+        frames.Add(newFrame);
     }
 
     private IEnumerable<ISpaceObjectAnimator> GatherAnimators()
     {
-        return recorders.Where(item => item.HasAnimationToRecord).Select(item => item.GetNextAnimator());
+        foreach (IAnimationRecorder item in recorders)
+        {
+            if(item.IsActive)
+            {
+                yield return item.FinishCapture();
+            }
+        }
+    }
+
+    internal void BeginKeyframeCapture()
+    {
+        foreach (IAnimationRecorder item in recorders)
+        {
+            item.StartCapture();
+        }
     }
 }

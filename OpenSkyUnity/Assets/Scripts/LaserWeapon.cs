@@ -17,7 +17,9 @@ public class LaserWeapon : AnimationRecorder<LaserWeaponKey>,  ISpaceshipWeapon
     {
         get
         {
-            throw new NotImplementedException();
+            //TODO: This
+            return false;
+            //throw new NotImplementedException();
         }
     }
 

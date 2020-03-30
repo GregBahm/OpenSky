@@ -31,6 +31,8 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
         }
     }
 
+    public float CurrentSpeed { get; private set; }
+
     private bool isActive;
     public override bool IsActive => isActive;
     
@@ -42,6 +44,7 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
         IEnumerable<Func<SpaceShip, ISpaceshipWeapon>> shipGetters,
         GameObject gameObject)
     {
+        isActive = true;
         TeamId = teamId;
         MaxHP = hitpoints;
         CurrentHP = hitpoints;
@@ -49,6 +52,7 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
         Manuverability = manuverability;
         Weapons = shipGetters.Select(item => item(this)).ToList().AsReadOnly();
         this.viewModel = new SpaceshipViewModel(gameObject);
+        CurrentSpeed = manuverability.MaxThrust / Game.KeyframesPerTurn;
     }
 
     public void RegisterDamage(IEnumerable<SpaceShip> activeShips, 
@@ -69,8 +73,9 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
     public void MoveEntity(int turnStep)
     {
         Pose pose = CurrentPath.Poses[turnStep];
-        
+
         // TODO: Handle near ship avoidance here
+        CurrentSpeed = (GameObject.transform.position - pose.position).magnitude;
 
         GameObject.transform.position = pose.position;
         GameObject.transform.rotation = pose.rotation;
@@ -95,7 +100,9 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
 
     public bool IsHitBy(IDamageSource source)
     {
-        throw new NotImplementedException();
+        //TODO: This
+        return false;
+        //throw new NotImplementedException();
     }
 
     protected override SpaceshipKey MakeKeyFromCurrentState()
@@ -123,6 +130,8 @@ public class SpaceshipViewModel
 
     public void DisplayKey(SpaceshipKey key)
     {
-        // TODO
+        // TODO: Show moar stuff with the key
+        gameObject.transform.position = key.Position;
+        gameObject.transform.rotation = key.Rotation;
     }
 }

@@ -50,11 +50,11 @@ public class CurrentGameState
 
     private void UpdateState()
     {
-        foreach (SpaceShip ship in allPossibleSpaceships)
+        foreach (SpaceShip ship in allPossibleSpaceships.Where(item => item.IsActive))
         {
             ship.UpdateState();
         }
-        foreach (Projectile projectile in allPossibleProjectiles)
+        foreach (Projectile projectile in allPossibleProjectiles.Where(item => item.IsActive))
         {
             projectile.UpdateState();
         }

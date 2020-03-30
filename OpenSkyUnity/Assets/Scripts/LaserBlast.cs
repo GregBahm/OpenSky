@@ -44,7 +44,7 @@ public class LaserBlast : Projectile
     public override void UpdateState()
     {
         currentAge += 1;
-        this.isActive = currentAge > Duration;
+        this.isActive = currentAge < Duration;
     }
 
     public override void OnSpaceshipHit(SpaceShip spaceship)

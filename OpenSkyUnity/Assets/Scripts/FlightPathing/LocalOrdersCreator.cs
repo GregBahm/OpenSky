@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 public class LocalOrdersCreator : MonoBehaviour, IShipOrdersSource
 {
@@ -8,25 +11,70 @@ public class LocalOrdersCreator : MonoBehaviour, IShipOrdersSource
     [SerializeField]
     private Waypoint EndPoint;
 
-    SpaceShip ship;
+    [SerializeField]
+    private GameObject waypointStepIndicatorPrefab;
+
+    public SpaceShip Ship { get; private set; }
+
+    private GameObject[] displayPoints;
+
+    private FlightPath currentFlightPath;
 
     public void Initialize(SpaceShip ship)
     {
-        this.ship = ship;
+        this.Ship = ship;
         SetupForNextTurn();
+        displayPoints = CreateDisplayPoints().ToArray();
+    }
+
+    private IEnumerable<GameObject> CreateDisplayPoints()
+    {
+        for (int i = 0; i < Game.KeyframesPerTurn; i++)
+        {
+            GameObject retItem = Instantiate(waypointStepIndicatorPrefab);
+            retItem.transform.parent = this.transform;
+            yield return retItem;
+        }
+    }
+
+    public void HideVisuals()
+    {
+        StartPoint.gameObject.SetActive(false);
+        EndPoint.gameObject.SetActive(false);
+        for (int i = 0; i < displayPoints.Length; i++)
+        {
+            displayPoints[i].SetActive(false);
+        }
+    }
+
+    public void ShowVisuals()
+    {
+        StartPoint.gameObject.SetActive(true);
+        EndPoint.gameObject.SetActive(true);
+        FlightPath path = GetCurrentFlightpath();
+        for (int i = 0; i < displayPoints.Length; i++)
+        {
+            displayPoints[i].SetActive(true);
+            Transform trans = displayPoints[i].transform;
+            Pose pose = path.Poses[i];
+            trans.position = pose.position;
+            trans.rotation = pose.rotation;
+        }
     }
 
     public void Apply()
     {
-        if(ship.IsActive)
-        {
-            ship.CurrentPath = new FlightPath(GetCurrentPath(),
-                ship.Manuverability.RotationUpWeight,
-                ship.Manuverability.RotationStrength,
-                Game.KeyframesPerTurn,
-                ship.GameObject.transform.position,
-                ship.GameObject.transform.up);
-        }
+        Ship.CurrentPath = GetCurrentFlightpath();
+    }
+
+    private FlightPath GetCurrentFlightpath()
+    {
+        return new FlightPath(GetCurrentPath(),
+            Ship.Manuverability.RotationUpWeight,
+            Ship.Manuverability.RotationStrength,
+            Game.KeyframesPerTurn,
+            Ship.GameObject.transform.position,
+            Ship.GameObject.transform.up);
     }
 
     private BezierCurve GetCurrentPath()
@@ -41,9 +89,16 @@ public class LocalOrdersCreator : MonoBehaviour, IShipOrdersSource
 
     public void SetupForNextTurn()
     {
-        if(ship.IsActive)
+        StartPoint.gameObject.SetActive(Ship.IsActive);
+        EndPoint.gameObject.SetActive(Ship.IsActive);
+        if (Ship.IsActive)
         {
-            // TODO: place the start and end point where the ship at the end maintains it's current ending and speed
+            float total = Ship.CurrentSpeed * Game.KeyframesPerTurn;
+            float handleWeight = total / 3;
+            Vector3 startPoint = Ship.GameObject.transform.position;
+            Vector3 endPoint = startPoint + Ship.GameObject.transform.forward * total;
+            StartPoint.Set(startPoint, Ship.GameObject.transform.rotation, handleWeight);
+            EndPoint.Set(endPoint, Ship.GameObject.transform.rotation, handleWeight);
         }
     }
 }

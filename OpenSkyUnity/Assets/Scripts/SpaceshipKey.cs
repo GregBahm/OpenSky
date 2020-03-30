@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public struct SpaceshipKey : ISpaceObjectKey<SpaceshipKey>
+public class SpaceshipKey : ISpaceObjectKey<SpaceshipKey>
 {
     public Vector3 Position { get; }
     public Quaternion Rotation { get; }

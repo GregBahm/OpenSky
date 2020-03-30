@@ -33,6 +33,7 @@ public class GameBehaviour : MonoBehaviour
         {
             AdvanceToNextTurn = false;
             game.AdvanceToNextTurn();
+            TimeToDisplay = 1;
         }
         else
         {

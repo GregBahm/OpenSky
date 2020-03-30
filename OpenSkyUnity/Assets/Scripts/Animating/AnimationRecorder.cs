@@ -3,8 +3,8 @@
 public abstract class AnimationRecorder<T> : IAnimationRecorder
     where T : ISpaceObjectKey<T>
 {
-    private T lastKey;
-    private bool lastKeyRecorded;
+    private T startKey;
+    private bool wasActiveLastKey;
 
     protected abstract T MakeKeyFromCurrentState();
 
@@ -12,14 +12,17 @@ public abstract class AnimationRecorder<T> : IAnimationRecorder
 
     protected abstract void Display(T key);
 
-    public bool HasAnimationToRecord { get { return !lastKeyRecorded; } }
-
-    public ISpaceObjectAnimator GetNextAnimator()
+    public void StartCapture()
     {
-        lastKeyRecorded = IsActive;
-        T startKey = lastKey;
-        lastKey = MakeKeyFromCurrentState();
-        return new SpaceObjectAnimator(startKey, lastKey, Display);
+        startKey = MakeKeyFromCurrentState();
+    }
+
+    public ISpaceObjectAnimator FinishCapture()
+    {
+        wasActiveLastKey = IsActive;
+        T startKey = this.startKey;
+        this.startKey = MakeKeyFromCurrentState();
+        return new SpaceObjectAnimator(startKey, this.startKey, this.Display);
     }
 
     private class SpaceObjectAnimator : ISpaceObjectAnimator

@@ -47,6 +47,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   StartPoint: {fileID: 1961666659577315532}
   EndPoint: {fileID: 7079381402304556948}
+  waypointStepIndicatorPrefab: {fileID: 488455382586083264, guid: dd5ebf892b4860145850bc43c286df75,
+    type: 3}
 --- !u!1001 &1689526140132242886
 PrefabInstance:
   m_ObjectHideFlags: 0
