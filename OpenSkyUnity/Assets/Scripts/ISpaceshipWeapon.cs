@@ -6,4 +6,5 @@ public interface ISpaceshipWeapon : IAnimationRecorder
     bool CanInitiateNewAttack { get; }
 
     void TryInitiateNewAttack(IEnumerable<SpaceShip> enemies);
+    void UpdateState();
 }

@@ -14,6 +14,7 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
     public GameObject GameObject { get; }
     public SpaceManuverability Manuverability { get; }
     public IReadOnlyCollection<ISpaceshipWeapon> Weapons { get; }
+    public IReadOnlyCollection<DamageEffect> DamageEffectsPool { get; }
     public FlightPath CurrentPath { get; set; }
     public IEnumerable<IAnimationRecorder> ViewableObjects
     {
@@ -28,6 +29,10 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
                     yield return projectile;
                 }
             }
+            foreach (IAnimationRecorder damageEffect in DamageEffectsPool)
+            {
+                yield return damageEffect;
+            }
         }
     }
 
@@ -37,12 +42,15 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
     public override bool IsActive => isActive;
     
     private readonly SpaceshipViewModel viewModel;
+
+    private readonly MeshCollider hitZone;
     
     public SpaceShip(int teamId,
         float hitpoints,
         SpaceManuverability manuverability, 
         IEnumerable<Func<SpaceShip, ISpaceshipWeapon>> shipGetters,
-        GameObject gameObject)
+        GameObject gameObject,
+        MeshCollider hitZone)
     {
         isActive = true;
         TeamId = teamId;
@@ -51,6 +59,7 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
         GameObject = gameObject;
         Manuverability = manuverability;
         Weapons = shipGetters.Select(item => item(this)).ToList().AsReadOnly();
+        this.hitZone = hitZone;
         this.viewModel = new SpaceshipViewModel(gameObject);
         CurrentSpeed = manuverability.MaxThrust / Game.KeyframesPerTurn;
     }
@@ -74,7 +83,7 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
     {
         Pose pose = CurrentPath.Poses[turnStep];
 
-        // TODO: Handle near ship avoidance here
+        // TODO: Handle near ship avoidance
         CurrentSpeed = (GameObject.transform.position - pose.position).magnitude;
 
         GameObject.transform.position = pose.position;
@@ -86,7 +95,11 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
         if(CurrentHP < 0)
         {
             this.isActive = false;
-            //TODO: Figure out how you're going to do a destruction animation
+            //TODO: Spaceship destruction display
+        }
+        foreach (ISpaceshipWeapon item in Weapons)
+        {
+            item.UpdateState();
         }
     }
 
@@ -100,9 +113,12 @@ public class SpaceShip : AnimationRecorder<SpaceshipKey>, IHitable
 
     public bool IsHitBy(IDamageSource source)
     {
-        //TODO: This
-        return false;
-        //throw new NotImplementedException();
+        Physics.CapsuleCast
+    }
+
+    public override void ClearVisuals()
+    {
+        GameObject.SetActive(false);
     }
 
     protected override SpaceshipKey MakeKeyFromCurrentState()
@@ -131,6 +147,7 @@ public class SpaceshipViewModel
     public void DisplayKey(SpaceshipKey key)
     {
         // TODO: Show moar stuff with the key
+        gameObject.SetActive(key.Destruction > 0);
         gameObject.transform.position = key.Position;
         gameObject.transform.rotation = key.Rotation;
     }

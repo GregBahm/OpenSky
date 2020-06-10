@@ -7,9 +7,9 @@ public class LaserWeapon : AnimationRecorder<LaserWeaponKey>,  ISpaceshipWeapon
 {
     public SpaceShip Ship { get; }
 
-    public ProjectilesPool<LaserBlast> ProjectilesPool { get; }
+    public IReadOnlyCollection<LaserBlast> ProjectilesPool { get; }
 
-    public IEnumerable<Projectile> Projectiles { get { return ProjectilesPool.Pool; } }
+    public IEnumerable<Projectile> Projectiles { get { return ProjectilesPool; } }
 
     public TargettingCone Targetting { get; }
 
@@ -17,30 +17,31 @@ public class LaserWeapon : AnimationRecorder<LaserWeaponKey>,  ISpaceshipWeapon
     {
         get
         {
-            //TODO: This
-            return false;
-            //throw new NotImplementedException();
+            return currentBlastCooldown <= 0
+                && ProjectilesPool.Any(item => !item.IsActive);
         }
     }
 
     public override bool IsActive => Ship.IsActive;
-
-    private readonly float delayBetweenVolleys;
-    private float timeSinceLastVolley;
-    private readonly float delayBetweenBlasts;
-    private float timeBetweenLastBlast;
+    
+    private readonly float blastCooldown;
+    private float currentBlastCooldown;
 
     public LaserWeapon(
         SpaceShip ship,
         IEnumerable<LaserBlast> projectiles,
-        float delayBetweenVolleys,
         float delayBetweenBlasts,
         TargettingCone targetting)
     {
         Ship = ship;
-        ProjectilesPool = new ProjectilesPool<LaserBlast>(projectiles);
-        this.delayBetweenVolleys = delayBetweenVolleys;
-        this.delayBetweenBlasts = delayBetweenBlasts;
+        ProjectilesPool = projectiles.ToList().AsReadOnly();
+        this.blastCooldown = delayBetweenBlasts;
+        Targetting = targetting;
+    }
+
+    public void UpdateState()
+    {
+        currentBlastCooldown -= 1;
     }
     
     private bool TargetsPresent(IEnumerable<SpaceShip> targets)
@@ -67,26 +68,29 @@ public class LaserWeapon : AnimationRecorder<LaserWeaponKey>,  ISpaceshipWeapon
     {
         if(TargetsPresent(enemies))
         {
-            LaserBlast blast = ProjectilesPool.GetNextProjectile();
+            LaserBlast blast = ProjectilesPool.GetNext();
             FireBlast(blast);
         }
     }
+
+    public override void ClearVisuals()
+    { }
 
     private void FireBlast(LaserBlast blast)
     {
         Vector3 pos = Ship.GameObject.transform.position;
         Quaternion rot = Ship.GameObject.transform.rotation;
         blast.Fire(pos, rot);
-        this.timeBetweenLastBlast = 0;
+        this.currentBlastCooldown = blastCooldown;
     }
 
     protected override LaserWeaponKey MakeKeyFromCurrentState()
     {
-        return new LaserWeaponKey(timeSinceLastVolley);
+        return new LaserWeaponKey(currentBlastCooldown);
     }
 
     protected override void Display(LaserWeaponKey key)
     {
-        // TODO: create a laser weapon game object
+        // TODO: display laser weapon game object
     }
 }

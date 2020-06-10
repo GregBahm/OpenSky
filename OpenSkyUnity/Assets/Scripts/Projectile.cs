@@ -23,11 +23,16 @@ public abstract class Projectile : AnimationRecorder<ProjectileKey>, IDamageSour
     }
 
     protected override void Display(ProjectileKey key)
-    { 
+    {
+        GameObject.SetActive(key.Progression < 1);
         GameObject.transform.position = key.Position;
         GameObject.transform.rotation = key.Rotation;
-        GameObject.SetActive(key.Progression < 1);
-        //TODO: Use progression to display animation
+        //TODO: projectile progression display
+    }
+
+    public override void ClearVisuals()
+    {
+        GameObject.SetActive(false);
     }
 
     public abstract void MoveEntity();

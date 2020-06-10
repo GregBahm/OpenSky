@@ -1,20 +1,29 @@
 ﻿
+#if UNITY_WSA
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.XR.WSA;
-
+using UnityEngine.XR.WSA.Input;
+using System.Collections.Generic;
+using System.Linq;
 #if WINDOWS_UWP
 using Windows.Perception;
 using Windows.Perception.People;
+using Windows.Perception.Spatial;
 using Windows.UI.Input.Spatial;
+#else
+using Microsoft.Windows.Perception;
+using Microsoft.Windows.Perception.People;
+using Microsoft.Windows.Perception.Spatial;
+using Microsoft.Windows.UI.Input.Spatial;
+#endif
 #endif
 
 public class Hands : MonoBehaviour
 {
-    private SpatialInteractionManager spatialInteractionManager;
+    #if UNITY_WSA
     private static readonly HandJointKind[] jointIndices = new HandJointKind[]
     {
         HandJointKind.Palm,
@@ -46,10 +55,11 @@ public class Hands : MonoBehaviour
     };
     private readonly JointPose[] jointPoses = new JointPose[jointIndices.Length];
 
-    private Transform[] leftHandProxies;
-    private Transform[] rightHandProxies;
+    [SerializeField]
+    private HandProxy leftHandProxy;
+    [SerializeField]
+    private HandProxy rightHandProxy;
 
-#if UNITY_WSA
 #if NETFX_CORE
         [DllImport("DotNetNativeWorkaround.dll", EntryPoint = "MarshalIInspectable")]
         private static extern void GetSpatialCoordinateSystem(IntPtr nativePtr, out SpatialCoordinateSystem coordinateSystem);
@@ -79,37 +89,64 @@ public class Hands : MonoBehaviour
             }
         }
 #elif WINDOWS_UWP
-    public static SpatialCoordinateSystem SpatialCoordinateSystem => spatialCoordinateSystem ?? (spatialCoordinateSystem = Marshal.GetObjectForIUnknown(WorldManager.GetNativeISpatialCoordinateSystemPtr()) as SpatialCoordinateSystem);
+        public static SpatialCoordinateSystem SpatialCoordinateSystem => spatialCoordinateSystem ?? (spatialCoordinateSystem = Marshal.GetObjectForIUnknown(WorldManager.GetNativeISpatialCoordinateSystemPtr()) as SpatialCoordinateSystem);
 #else
-        public static SpatialCoordinateSystem SpatialCoordinateSystem
+    public static SpatialCoordinateSystem SpatialCoordinateSystem
+    {
+        get
         {
-            get
+            var spatialCoordinateSystemPtr = WorldManager.GetNativeISpatialCoordinateSystemPtr();
+            if (spatialCoordinateSystem == null && spatialCoordinateSystemPtr != System.IntPtr.Zero)
             {
-                var spatialCoordinateSystemPtr = WorldManager.GetNativeISpatialCoordinateSystemPtr();
-                if (spatialCoordinateSystem == null && spatialCoordinateSystemPtr != System.IntPtr.Zero)
-                {
-                    spatialCoordinateSystem = SpatialCoordinateSystem.FromNativePtr(WorldManager.GetNativeISpatialCoordinateSystemPtr());
-                }
-                return spatialCoordinateSystem;
+                spatialCoordinateSystem = SpatialCoordinateSystem.FromNativePtr(WorldManager.GetNativeISpatialCoordinateSystemPtr());
             }
+            return spatialCoordinateSystem;
         }
+    }
 #endif
     private static SpatialCoordinateSystem spatialCoordinateSystem = null;
-#endif // UNITY_WSA
-
-    void Start()
+    
+    private SpatialInteractionManager SpatialInteractionManager
     {
-        UnityEngine.WSA.Application.InvokeOnUIThread(() =>
+        get
         {
-            spatialInteractionManager = SpatialInteractionManager.GetForCurrentView();
-        }, true);
+            if (spatialInteractionManager == null)
+            {
+                UnityEngine.WSA.Application.InvokeOnUIThread(() =>
+                {
+                    spatialInteractionManager = SpatialInteractionManager.GetForCurrentView();
+                }, true);
+            }
+
+            return spatialInteractionManager;
+        }
     }
 
-    void Update()
+    private SpatialInteractionManager spatialInteractionManager = null;
+
+    private void Start()
+    {
+        InteractionManager.InteractionSourceDetected += InteractionManager_InteractionSourceDetected;
+    }
+
+    private void InteractionManager_InteractionSourceDetected(InteractionSourceDetectedEventArgs obj)
+    {
+        UpdateHands();
+    }
+
+    private void Update()
+    {
+        if(spatialInteractionManager != null)
+        {
+            UpdateHands();
+        }
+    }
+
+    private void UpdateHands()
     {
         PerceptionTimestamp perceptionTimestamp = PerceptionTimestampHelper.FromHistoricalTargetTime(DateTimeOffset.Now);
-        IReadOnlyList<SpatialInteractionSourceState> sources = spatialInteractionManager?.GetDetectedSourcesAtTimestamp(perceptionTimestamp);
-        
+        IReadOnlyList<SpatialInteractionSourceState> sources = SpatialInteractionManager?.GetDetectedSourcesAtTimestamp(perceptionTimestamp);
+
         foreach (SpatialInteractionSourceState sourceState in sources)
         {
             HandPose handPose = sourceState.TryGetHandPose();
@@ -118,21 +155,21 @@ public class Hands : MonoBehaviour
                 SpatialInteractionSourceHandedness handIndex = sourceState.Source.Handedness;
                 if(handIndex == SpatialInteractionSourceHandedness.Left)
                 {
-                    ApplyTransforms(leftHandProxies, jointPoses);
+                    ApplyTransforms(leftHandProxy, jointPoses);
                 }
                 else
                 {
-                    ApplyTransforms(rightHandProxies, jointPoses);
+                    ApplyTransforms(rightHandProxy, jointPoses);
                 }
             }
         }
     }
 
-    private void ApplyTransforms(Transform[] handProxies, JointPose[] jointPoses)
+    private void ApplyTransforms(HandProxy handProxies, JointPose[] jointPoses)
     {
         for (int i = 0; i < jointPoses.Length; i++)
         {
-            ApplyPose(handProxies[i], jointPoses[i]);
+            ApplyPose(handProxies.AllJoints[i], jointPoses[i]);
         }
     }
 
@@ -151,15 +188,5 @@ public class Hands : MonoBehaviour
     {
         return new UnityEngine.Quaternion(-quaternion.X, -quaternion.Y, quaternion.Z, quaternion.W);
     }
-    
-    IEnumerable<Transform> CreateHand()
-    {
-        Transform hand = new GameObject("Hand").transform;
-        foreach (HandJointKind item in jointIndices)
-        {
-            Transform joint = new GameObject(item.ToString()).transform;
-            joint.parent = hand;
-            yield return joint;
-        }
-    }
+#endif
 }

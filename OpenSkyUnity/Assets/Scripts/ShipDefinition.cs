@@ -28,7 +28,7 @@ public class ShipDefinition : MonoBehaviour
 
     public IShipOrdersSource CreateOrdersSource(SpaceShip ship)
     {
-        // TODO: Only do this if the ship is locally controlled
+        // TODO: create orders source: only do this if the ship is locally controlled
         GameObject obj = Instantiate(LocalOrdersPrefab);
         LocalOrdersCreator ret = obj.GetComponent<LocalOrdersCreator>();
         ret.Initialize(ship);

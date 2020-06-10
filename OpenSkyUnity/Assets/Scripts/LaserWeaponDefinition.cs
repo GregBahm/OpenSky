@@ -5,7 +5,6 @@ using UnityEngine;
 public class LaserWeaponDefinition : WeaponDefinition
 {
     public int MaxRounds;
-    public float DelayBetweenVolleys;
     public float DelayBetweenBlasts;
     public GameObject BlastPrefab;
     public float ProjectileSpeed;
@@ -21,7 +20,6 @@ public class LaserWeaponDefinition : WeaponDefinition
         TargettingCone targetting = new TargettingCone(FiringConeAngle, FiringConeDistance);
         return new LaserWeapon(ship,
             blasts,
-            DelayBetweenVolleys,
             DelayBetweenBlasts,
             targetting
             );

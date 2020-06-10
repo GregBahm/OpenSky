@@ -84,9 +84,9 @@ public class Game
 
     private void DoNextKeyframe(int turnStep)
     {
-        timeline.BeginKeyframeCapture();
+        IEnumerable<IAnimationRecorder> animators = timeline.GetAnimators().ToArray();
         currentGameState.AdvanceGameOneStep(turnStep);
-        timeline.FinishKeyframeCapture();
+        timeline.FinishKeyframeCapture(animators);
         maxGameTime++;
     }
 }

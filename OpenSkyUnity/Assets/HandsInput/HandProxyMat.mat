@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: WaypointIndicatorMat
-  m_Shader: {fileID: 4800000, guid: 3738c014eec721a47b6333584cbd6734, type: 3}
+  m_Name: HandProxyMat
+  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -75,7 +75,3 @@ Material:
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _HighBase: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
-    - _HighSpec: {r: 0.4811321, g: 0.4811321, b: 0.4811321, a: 1}
-    - _LowBase: {r: 0, g: 0, b: 0, a: 1}
-    - _LowSpec: {r: 0.2924528, g: 0.2924528, b: 0.2924528, a: 1}

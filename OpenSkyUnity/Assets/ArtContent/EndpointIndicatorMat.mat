@@ -70,8 +70,13 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _Team: 0
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _HighBase: {r: 0.5566038, g: 0.5566038, b: 0.5566038, a: 1}
+    - _HighSpec: {r: 0.6415094, g: 0.6415094, b: 0.6415094, a: 1}
+    - _LowBase: {r: 0.11320752, g: 0.11320752, b: 0.11320752, a: 1}
+    - _LowSpec: {r: 0.3295657, g: 0.40737316, b: 0.4339623, a: 1}

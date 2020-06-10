@@ -33,33 +33,36 @@ public class MasterTimeline
             frame = frame - 1;
             timeWithinFrame = 1;
         }
+
+        ClearVisuals();
         frames[frame].Display(timeWithinFrame);
         CurrentTime = time;
     }
 
-    internal void FinishKeyframeCapture()
+    private void ClearVisuals()
     {
-        IEnumerable<ISpaceObjectAnimator> animators = GatherAnimators();
+        foreach (IAnimationRecorder recorder in recorders)
+        {
+            recorder.ClearVisuals();
+        }
+    }
+
+    internal void FinishKeyframeCapture(IEnumerable<IAnimationRecorder> recorders)
+    {
+        IEnumerable<ISpaceObjectAnimator> animators = recorders.Select(item => item.FinishCapture()).ToArray();
         GameFrame newFrame = new GameFrame(animators);
         frames.Add(newFrame);
     }
 
-    private IEnumerable<ISpaceObjectAnimator> GatherAnimators()
+    internal IEnumerable<IAnimationRecorder> GetAnimators()
     {
         foreach (IAnimationRecorder item in recorders)
         {
-            if(item.IsActive)
+            if (item.IsActive)
             {
-                yield return item.FinishCapture();
+                item.StartCapture();
+                yield return item;
             }
-        }
-    }
-
-    internal void BeginKeyframeCapture()
-    {
-        foreach (IAnimationRecorder item in recorders)
-        {
-            item.StartCapture();
         }
     }
 }

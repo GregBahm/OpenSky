@@ -12,6 +12,8 @@ public abstract class AnimationRecorder<T> : IAnimationRecorder
 
     protected abstract void Display(T key);
 
+    public abstract void ClearVisuals();
+
     public void StartCapture()
     {
         startKey = MakeKeyFromCurrentState();
@@ -20,9 +22,8 @@ public abstract class AnimationRecorder<T> : IAnimationRecorder
     public ISpaceObjectAnimator FinishCapture()
     {
         wasActiveLastKey = IsActive;
-        T startKey = this.startKey;
-        this.startKey = MakeKeyFromCurrentState();
-        return new SpaceObjectAnimator(startKey, this.startKey, this.Display);
+        T endKey = MakeKeyFromCurrentState();
+        return new SpaceObjectAnimator(this.startKey, endKey, this.Display);
     }
 
     private class SpaceObjectAnimator : ISpaceObjectAnimator
